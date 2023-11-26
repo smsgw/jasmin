@@ -270,7 +270,6 @@ class DistributedRoute:
         return self._str
 
     def getConnector(self):
-        random.seed(42)
         return random.choices(self.connector, self.weights, k=1)[0]
     
 class DistributedMTRoute(DistributedRoute, MTRoute):
