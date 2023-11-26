@@ -226,6 +226,77 @@ class RoundrobinRoute:
     def getConnector(self):
         return random.choice(self.connector)
 
+class DistributedRoute:
+    """Generic DistributedRoute
+    """
+
+    _type = None
+
+    def __init__(self, filters, connectors, weights):
+        if not isinstance(connectors, list):
+            raise InvalidRouteParameterError("connectors must be a list")
+        if len(connectors) == 0:
+            raise InvalidRouteParameterError("Route cannot have zero connectors")
+        for _connector in connectors:
+            if not isinstance(_connector, Connector):
+                raise InvalidRouteParameterError("connector is not an instance of Connector")
+        if not isinstance(filters, list):
+            raise InvalidRouteParameterError("filters must be a list")
+        if not isinstance(weights, list):
+            raise InvalidRouteParameterError("weights must be a list")
+        for _filter in filters:
+            if not isinstance(_filter, Filter):
+                raise InvalidRouteParameterError(
+                    "filter must be an instance of Filter, %s found" % type(_filter))
+            if self._type not in _filter.usedFor:
+                raise InvalidRouteFilterError(
+                    "filter types (%s) is not compatible with this route type (%s)" % (
+                        _filter.usedFor, self._type))
+
+        self.filters = filters
+        self.connector = connectors
+        self.weights = weights
+
+        connector_list_str = ''
+        for c in connectors:
+            if connector_list_str != '':
+                connector_list_str += '\n'
+            connector_list_str += '\t- %s(%s)' % (c._type, c.cid)
+        self._str = '%s to %s connectors:\n%s' % (self.__class__.__name__,
+                                                  len(connectors),
+                                                  connector_list_str)
+
+    def __str__(self):
+        return self._str
+
+    def getConnector(self):
+        random.seed(42)
+        return random.choices(self.connector, self.weights, k=1)[0]
+    
+class DistributedMTRoute(DistributedRoute, MTRoute):
+    """Return one route taken randomly from a pool of
+    routes
+    """
+    _type = 'mt'
+
+    def __init__(self, filters, connectors, rate, weights):
+        "Overriding DistributedRoute's __init__ to add rate parameter as it is only used for MT Routes"
+
+        if not isinstance(rate, float):
+            raise InvalidRouteParameterError("rate is not float")
+        if rate < 0:
+            raise InvalidRouteParameterError("rate can not be a negative value")
+
+        self.rate = rate
+
+        DistributedRoute.__init__(self, filters, connectors, weights)
+
+        if self.rate > 0:
+            rate_str = '\nrated %.2f' % self.rate
+        else:
+            rate_str = '\nNOT RATED'
+        self._str = "%s %s" % (self._str, rate_str)
+
 
 class RandomRoundrobinMORoute(RoundrobinRoute, MORoute):
     """Return one route taken randomly from a pool of

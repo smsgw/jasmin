@@ -5,10 +5,10 @@ import re
 
 from jasmin.protocols.cli.filtersm import MTFILTERS
 from jasmin.protocols.cli.managers import PersistableManager, Session
-from jasmin.routing.Routes import (DefaultRoute, StaticMTRoute, RandomRoundrobinMTRoute, FailoverMTRoute)
+from jasmin.routing.Routes import (DefaultRoute, StaticMTRoute, RandomRoundrobinMTRoute, FailoverMTRoute, DistributedMTRoute)
 from jasmin.routing.jasminApi import SmppClientConnector
 
-MTROUTES = ['DefaultRoute', 'StaticMTRoute', 'RandomRoundrobinMTRoute', 'FailoverMTRoute']
+MTROUTES = ['DefaultRoute', 'StaticMTRoute', 'RandomRoundrobinMTRoute', 'FailoverMTRoute', 'DistributedMTRoute']
 
 # A config map between console-configuration keys and Route keys.
 MTRouteKeyMap = {'order': 'order', 'type': 'type'}
@@ -189,6 +189,12 @@ def MTRouteBuild(fCallback):
                                         _Filter.__class__.__name__, fid))
                             else:
                                 arg.append(_Filter)
+                
+                if cmd == 'weights':
+                    try:
+                        arg = [int(x) for x in arg.split(';')]
+                    except ValueError:
+                        return self.protocol.sendData('Incorrect weights (must be integers): %s' % (arg))
 
                 # Buffer key for later Route initiating
                 if cmd not in ra:
