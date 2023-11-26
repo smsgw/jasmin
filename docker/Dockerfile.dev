@@ -1,6 +1,6 @@
-FROM python:3.10-buster
+FROM python:3.10.7-buster
 
-MAINTAINER Jookies LTD <jasmin@jookies.net>
+LABEL Jookies LTD <jasmin@jookies.net>
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r jasmin && useradd -r -g jasmin jasmin
