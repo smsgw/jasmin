@@ -258,10 +258,10 @@ class DistributedRoute:
         self.weights = weights
 
         connector_list_str = ''
-        for c in connectors:
+        for i, c in enumerate(connectors):
             if connector_list_str != '':
                 connector_list_str += '\n'
-            connector_list_str += '\t- %s(%s)' % (c._type, c.cid)
+            connector_list_str += '\t- %s(%s[%d%%])' % (c._type, c.cid, weights[i])
         self._str = '%s to %s connectors:\n%s' % (self.__class__.__name__,
                                                   len(connectors),
                                                   connector_list_str)
